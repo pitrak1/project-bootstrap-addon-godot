@@ -11,6 +11,8 @@ func _ready():
 		__start_server()
 	elif OS.has_feature("client"):
 		__start_client()
+	else:
+		__start_client()
 	
 	get_tree().connect("network_peer_connected", self, "_player_connected")
 	get_tree().connect("network_peer_disconnected", self, "_player_disconnected")

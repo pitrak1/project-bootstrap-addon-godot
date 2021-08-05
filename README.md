@@ -4,17 +4,32 @@ A Godot addon to provide common functionality for multiplayer games.  Currently 
 
 ## Installation
 
-- Copy the `ProjectBootstrap` folder from this repo into your `addons` subdirectory.
-- Create a `Constants.gd` file in your project.
-	- This must contain at least two values:
-		- `ip_address`: The IP address or DNS lookup for your server.
-		- `port`: The port for the service to communicate through.
-	- Feel free to add more values to this file for your own purposes.
-- Add three values to your AutoLoad in your Project Settings with Singleton enabled.  These entries should be listed in the order below.
+1. Copy the `ProjectBootstrap` folder from this repo into your `addons` subdirectory.
+2. Create a `Constants.gd` file in your project.  This should get you started:
+
+NOTE: Don't stress about the instructions in this file.  The uses of these are covered in other sections of this README.  Also, feel free to add your own constants here as needed.
+
+
+```
+export var ip_address = "localhost" # The IP address or DNS name for your server
+export var port = 1234 # The port to communicate through
+
+export var starting_camera_position = Vector2(640, 360) # The starting position of the game camera
+export var camera_pan_increment = 256 # The amount to pan the camera on a Pan action
+export var camera_zoom_factor = 0.2 # The amount to zoom on a Zoom action
+
+export var client_start_state = <REQUIRED> # The scene to use as your starting scene for the client
+export var server_start_state = "res:/addons/ProjectBootstrap/Server.tscn" # The scene to use as your starting scene for the server.  You can change this if you want to write your own.
+export var player_scene = <REQUIRED> # The scene to use to represent a player, a client, a person on the network using your server.  You should write your own and inherit from Player.gd.
+export var game_scene = <REQUIRED> # The scene to use to represent a game, a lobby, a grouping of people on your server.  You should write your own and inherit from Game.gd.
+```
+
+3. Add three values to your AutoLoad in your Project Settings with Singleton enabled.  These entries should be listed in the order below.
 	- `Constants` loaded from `Constants.gd`
 	- `StateMachine` loaded from `res://addons/ProjectBootstrap/StateMachine.gd`
 	- `Network` loaded from `res://addons/ProjectBootstrap/Network.gd`
-- You probably also want to add the `ProjectBootstrap` folder to your `.gitignore`.
+4. Set your Main Scene in your Project Settings -> General -> Run to the `Main.tscn` scene in the `ProjectBootstrap` directory.
+5. (OPTIONAL) You probably also want to add the `ProjectBootstrap` folder to your `.gitignore`.
 
 ## Usage	
 
@@ -37,6 +52,9 @@ In order to keep values between states, a Singleton should be added, like we did
 
 In order to use the networking features, your Project Export Preset should have `client` or `server` in its features list.
 
+
+# TODO past this point
+
 #### Client Side
 
 To allow networking to work, we need to define states in certain ways.
@@ -45,14 +63,14 @@ To allow networking to work, we need to define states in certain ways.
 - The script should extend the `State.gd` file in this repository.
 - Your root node should have at least three children:
 	- A CanvasLayer called `UICanvasLayer`
-	- A Label called `LoadingLabel` as a child of the `UICanvasLayer`
+	- A Label called `LoadingIndicator` as a child of the `UICanvasLayer`
 	- A Camera2D called `Camera2D`
-	- Note: The way to use this system is to create everything you want to move with the camera (UI elements) as Control nodes and as children of the `UICanvasLayer` node, and anything you do not want to move with the camera (game elements) as Node2D nodes and not as children of the `UICanvasLayer` node. Additionally, the base `State` script will show and hide the `LoadingLabel` as appropriate based on network requests.
+	- Note: The way to use this system is to create everything you want to move with the camera (UI elements) as Control nodes and as children of the `UICanvasLayer` node, and anything you do not want to move with the camera (game elements) as Node2D nodes and not as children of the `UICanvasLayer` node. Additionally, the base `State` script will show and hide the `LoadingIndicator` as appropriate based on network requests.
 
 If states are defined this way, client networking works as follows:
 - `send_network_command` will send a request to the server, with the first argument being the command name and the second argument being an object where you can put data that may be required on the server side.
 - `<command_name>_response` will be called when a server response is sent for a particular command, with the first argument being the data returned from the server.  A good convention is to at least have a `status` key in that object.
-- The `LoadingLabel` will be shown once a request is sent and hidden again once the request completes.
+- The `LoadingIndicator` will be shown once a request is sent and hidden again once the request completes.
 - If the state needs to respond to a particular command from the server initiated by another client (for instance, another player joining the lobby), the same methodology should be used.  A server command of a certain name will be sent to all clients, and a client should have the `<command_name>_response` method defined.
 
 #### Server Side
